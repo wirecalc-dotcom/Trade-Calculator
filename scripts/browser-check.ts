@@ -8,8 +8,8 @@ import { chromium, type Page } from "playwright";
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 
-const base = (process.argv.find((a) => /^https?:\/\//.test(a)) ?? "http://127.0.0.1:8787").replace(/\/$/, "");
-const shots = process.argv.find((a) => a.startsWith("--shots="))?.slice(8) ?? null;
+const base = (process.argv.find((a: string) => /^https?:\/\//.test(a)) ?? "http://127.0.0.1:8787").replace(/\/$/, "");
+const shots = process.argv.find((a: string) => a.startsWith("--shots="))?.slice(8) ?? null;
 if (shots) mkdirSync(shots, { recursive: true });
 
 type Case = { set: [string, string][]; expect: RegExp; check?: [string, string][] };
