@@ -1,0 +1,21 @@
+# Runs on every push and pull request: the math tests (the 50 calc_reference.py cases and the Cerrowire check),
+# the tracking and site tests, the type check and a full build. dnsmailcheck has no CI (its gate is a local pre-push hook);
+# the brief for this site asks for the math tests in CI.
+name: test
+on:
+  push:
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx vitest run tests/unit/calc.test.ts --reporter=verbose
+      - run: npx vitest run tests/unit/tracking.test.ts
+      - run: npm run typecheck
+      - run: npm run build

@@ -342,3 +342,51 @@ Offer, check, capture, purchase, refund and Watch metrics also live in `stats.ts
 - Email sending: Resend, report emails, digest, unsubscribe, tips (no email capture in this build).
 - Rate-limit Durable Object (`IpLimiter`): it only guarded DNS checks and emails.
 - All dnsmailcheck copy and brand: `content/*`, the envelope-heart logo, violet accent, `og.png`, guides.
+
+---
+
+## What the port did (build steps 2–6, 31 Oct 2026)
+
+### Cloudflare resources (account clutcharchive2006, nothing of dnsmailcheck's touched)
+
+| Resource | Name / id | dnsmailcheck's equivalent |
+|---|---|---|
+| Worker | `wirecalc-site` → https://wirecalc-site.clutcharchive2006.workers.dev | `email-checker` |
+| D1 | `wirecalc-db` (`87aa0b73-caf4-4f31-8e75-941ef31f2cf3`), migration `0001_init.sql` | `email-checker` |
+| KV | `wirecalc-kv` (`34a0c5cc05284e458b7ed3d10423cdb5`), bound as `KV`, unused | `email-checker` |
+| Analytics Engine | none (dnsmailcheck has none; its tracker writes to D1) | none |
+| Secrets | `ADMIN_SECRET`, `ADS_INGEST_SECRET` (values in local `.dev.vars` only) | same names |
+| Cron | `0 7 * * *`: retention purge only | crons off in asset mode |
+
+Checked after the tracking test: dnsmailcheck's `email-checker` D1 has 0 rows from this work.
+
+Differences from dnsmailcheck's wrangler.toml, and why: `workers_dev`/`preview_urls` on (no Durable Object; domain not connected yet); custom-domain `routes` commented out until wirecalculators.com is in this account (docs/setup-steps.md step 2); no `[limits]`, no Durable Object, no queue, no `[vars]` (no DNS checks, no rate limits, no accounts).
+
+### D1 schema
+
+`events`, `ad_hits`, `ads_clicks`, `ads_search_terms`, `ads_keywords_daily`, `ads_campaigns_daily`, `ads_ingests`: dnsmailcheck's final shapes (all columns kept, so ported queries run unchanged). New columns on `events`: `inputs`, `result` (calc_run, copy_result), `ret_days` (return_visit). Not created: the 30-odd product tables (Stripe, Watch, accounts, email, DMARC, quotes), `stats_daily` (digest email), `counters`, `cron_runs`.
+
+### Rebrand (what changed in the UI system)
+
+- Name "Wire Calculators", domain wirecalculators.com (`src/config.ts`).
+- Logo: a stranded wire seen end-on (`src/site/brand.ts`), rendered to favicon.svg/.ico, apple-touch-icon, icon-192/512, og.png and site.webmanifest by dnsmailcheck's own `scripts/brand-assets.ts`.
+- **One accent colour swapped:** dnsmailcheck's logo violet `#4B32C3` (hue 250°) → teal `#1B5F6A` (hue 188°), 7.3:1 on white. The violet-derived tokens moved to the same saturation and lightness at the new hue: `--c-tint #F4FAFB`, `--c-tint-2 #E6F2F4`, `--c-divider #E0EAEC`, `--c-accent`/`--c-focus`/`--c-brand-deep`/`--c-avatar #1B5F6A`, `--c-accent-hover #124C55`, `--c-brand-soft #7CC4CE`, `--c-glow #D2F4F8`, `--c-dots`, `--c-info-bg`, `--c-code-bg`, `--c-offer-*`, and the dark block's canvas, surfaces and accent (`#86D3DE`, 7.6:1 on surface 2). Copper was tried first and rejected: it lands on top of the warning amber `#874A00`.
+- Unchanged: every other token, the type scale, Google Sans Flex, spacing, radii, controls, the royal-blue CTA, status colours, header/footer/menu/theme toggle, section cards, tables.
+- Removed CSS: the brand-preview, accounts (A1), account app shell and Watch dashboard blocks (95 KB → 64 KB). Added: calculator, result, formula, worked example and reference-chart styles at the end of styles.css, built from the same tokens.
+
+### Analytics and click tracking: what's identical, what's new
+
+Identical (code ported with the `ec_` names renamed `wc_`): the `wc_v` visit cookie and its stickiness rule, session-storage attribution (`wc_attr`), visit token, page-view id, sendBeacon with fetch fallback and the `wc_q` retry queue, `pv_seq`/`sent` loss accounting, page_view, return_visit, details_open, scroll_depth, exit, landing_404; the Worker's ad_hits log with hit id, inline boot/exit script and no-JS pixel (CSP hash recomputed after renaming `ec-hit`/`__ecApp`); bot rules (UA, headless, no UA, cf verified, bad click id, datacenter, bursts, prefetch); internal rules 1–2 (`__Host-wc_internal`); /admin/stats range rules and per-visit flagging; /admin/clicks with verdicts and ladder; the Google Ads Script and /api/ads-ingest; reconciliation of Google's clicks and cost against arrivals; 25-month retention.
+
+New (same mechanism): `calc_run` (tool, inputs, result, first in visit; sent when a valid result has been stable for 1.5 s, once per distinct input set per page view), `formula_view` and `chart_view` (half on screen for 1 s, dnsmailcheck's offer_view rule), `copy_result`; `ret_days` on return_visit; the Phase 4 block on /admin/stats (cost per visit, visits, returned within 14 days, without ads, split by ads paused/running from Google's campaign report, calc runs per visitor, dnsmailcheck's stickiness line). On /admin/clicks, "converted" means ran a calculator.
+
+Not ported (no counterpart here): check/offer/capture/purchase events and funnels, offer placements, the Watch ad test, the daily digest email, the conversions CSV (no conversions to upload yet), the `cta_view` event.
+
+Consent: identical to dnsmailcheck: no banner, and the first-party tracker and `wc_v` cookie run on page load, before any consent. GA4/Ads tag/Clarity are not loaded (dnsmailcheck has none).
+
+### Gotchas met during this build
+
+1. JS objects list integer-like keys ("1", "2", "10") before others, so iterating a size table's keys gives the wrong order; Python dicts keep insertion order. Every size loop in `src/lib/calc.ts` goes through `SIZES`/`TRADE_ORDER`.
+2. Redrawing a calculator's result on the `change` event that follows typing replaced the Copy button under the tap; results now redraw only when they change.
+3. `navigator.clipboard.writeText` can hang (headless Chrome): copy_result is sent before the clipboard call.
+4. wrangler's OAuth token can't be refreshed from a non-interactive session; it has to be passed as `CLOUDFLARE_API_TOKEN` and dies at its expiry.
