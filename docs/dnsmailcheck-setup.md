@@ -349,7 +349,7 @@ Offer, check, capture, purchase, refund and Watch metrics also live in `stats.ts
 
 ### Cloudflare resources
 
-**Current (since 31 Oct 2026, follow-up build):** Stackbriefco@gmail.com's Account (`1552e47f096ee67d67374d48d09873a8`, login stackbriefco@gmail.com), which holds the wirecalculators.com zone: Worker `wirecalc-site` on Workers Custom Domains wirecalculators.com and www.wirecalculators.com (no workers.dev), D1 `wirecalc-db` (`bd55cd2b-7b5c-4e4c-9391-063d81a3a644`), KV `wirecalc-kv` (`eecafc8a7f35443cb35bd0689fcf6e67`), fresh `ADMIN_SECRET` and `ADS_INGEST_SECRET`. The cron isn't scheduled yet (the account needs a workers.dev subdomain: docs/setup-steps.md step 1).
+**Current (since 31 Oct 2026, follow-up build):** Stackbriefco@gmail.com's Account (`1552e47f096ee67d67374d48d09873a8`, login stackbriefco@gmail.com), which holds the wirecalculators.com zone: Worker `wirecalc-site` on Workers Custom Domains wirecalculators.com and www.wirecalculators.com (no workers.dev), D1 `wirecalc-db` (`bd55cd2b-7b5c-4e4c-9391-063d81a3a644`), KV `wirecalc-kv` (`eecafc8a7f35443cb35bd0689fcf6e67`), fresh `ADMIN_SECRET` and `ADS_INGEST_SECRET`. The daily retention cron (`0 7 * * *`) is scheduled since 31 Oct 2026 (it needed the account's workers.dev subdomain first).
 
 **First preview (left in place, untouched), dnsmailcheck's account clutcharchive2006:**
 
