@@ -22,6 +22,8 @@ summary: Where each value comes from, by table and note number. {.open}
 - **Note 7 to the Chapter 9 tables:** when every conductor is the same size, a decimal of 0.8 or more rounds up to the next whole number.
 - **Annex C:** the code's own count tables. They're informative and come from the same Table 4 and Table 5 math.
 
+Wire makers' calculators can show a slightly lower fill: they use their own wire diameters, while this calculator uses the Table 5 areas inspectors check.
+
 {{example}}
 
 {{chart}}

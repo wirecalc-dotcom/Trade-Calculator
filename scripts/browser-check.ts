@@ -1,6 +1,7 @@
 // Playwright check of every page at 390 px and 1280 px (dnsmailcheck's browser-check did the same with Chrome over CDP).
 // For each page and width: no horizontal scroll, no console errors or failed requests, and on each calculator one known case
 // from tests/unit/calc.test.ts typed into the real inputs, with the result read back from the page.
+// Also: every calculator computes instantly (no Calculate/submit button; a typed change updates the result within 500 ms).
 // Usage: npx tsx scripts/browser-check.ts [base-url] [--shots=dir]   (default base: http://127.0.0.1:8787)
 // Requests carry ?utm_source=test so the tracker marks them internal (src/lib/internal.ts rule 1); Playwright is also a bot by UA.
 
@@ -63,6 +64,19 @@ for (const width of [390, 1280]) {
     const over = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     ok(over <= 0, `${p.path} @${width}: horizontal scroll ${over}px`);
     if (p.text) ok(p.text.test(await page.locator("main").innerText()), `${p.path} @${width}: text ${p.text}`);
+    if (p.calc) {
+      // Instant results: no Calculate/submit button, and changing one input changes the result with no click and no Enter.
+      const buttons = await page.locator(`form[data-calc] button, form[data-calc] input[type="submit"]`).count();
+      ok(buttons === 0, `${p.path} @${width}: calculator has ${buttons} submit/calculate buttons`);
+      const head0 = await page.locator(`[data-result="${p.calc}"] .calc-headline`).innerText();
+      const first = page.locator(`form[data-calc="${p.calc}"] input[inputmode="decimal"]`).first();
+      const was = await first.inputValue();
+      await first.fill(String((Number(was) || 1) * 2));
+      const changed = await page.waitForFunction(([calc, h]) => document.querySelector(`[data-result="${calc}"] .calc-headline`)?.textContent !== h,
+        [p.calc, head0] as const, { timeout: 500 }).then(() => true, () => false);
+      ok(changed, `${p.path} @${width}: result didn't update within 500 ms of typing`);
+      await first.fill(was);
+    }
     for (const c of p.cases ?? []) {
       await fill(page, p.calc!, c.set);
       const head = page.locator(`[data-result="${p.calc}"] .calc-headline`);

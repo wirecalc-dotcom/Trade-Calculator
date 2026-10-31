@@ -165,3 +165,74 @@ describe("extras used by the pages", () => {
     expect(conduitFill("emt", "1/2", [{ size: "12", count: 2 }]).fillPct).toBe(31);
   });
 });
+
+// ---------- manufacturer cross-check (docs/research/southwire-comparison.md, Southwire web calculators, 31 Oct 2026) ----------
+// Reports how far Southwire's numbers are from ours. Never fails: Southwire uses its own method (Table 8 DC R plus Table 9 XL,
+// adjusted for conductor temperature under load; its own THHN diameters), so differences are expected. It only fails if our
+// own number moves away from the one recorded in the research (a regression in our math, not a difference with Southwire).
+type VdX = { c: string; m: Material; s: string; cd: "pvc" | "al" | "steel"; ph: 1 | 3; v: number; a: number; ft: number; pf: number; sw: number; ours: number };
+const VD_X: VdX[] = [
+  { c: "12 Cu PVC 1ph 120 V 12 A 100 ft PF .85", m: "cu", s: "12", cd: "pvc", ph: 1, v: 120, a: 12, ft: 100, pf: .85, sw: 3.41, ours: 3.46 },
+  { c: "12 Cu steel 3ph 480 V 14 A 200 ft PF .85", m: "cu", s: "12", cd: "steel", ph: 3, v: 480, a: 14, ft: 200, pf: .85, sw: 1.73, ours: 1.75 },
+  { c: "10 Cu steel 3ph 480 V 18 A 200 ft PF 1", m: "cu", s: "10", cd: "steel", ph: 3, v: 480, a: 18, ft: 200, pf: 1, sw: 1.65, ours: 1.56 },
+  { c: "500 Cu steel 3ph 480 V 302 A 200 ft PF .9", m: "cu", s: "500", cd: "steel", ph: 3, v: 480, a: 302, ft: 200, pf: .9, sw: 0.96, ours: 1.02 },
+  { c: "10 Cu steel 1ph 120 V 10 A 100 ft PF .9", m: "cu", s: "10", cd: "steel", ph: 1, v: 120, a: 10, ft: 100, pf: .9, sw: 1.91, ours: 1.85 },
+  { c: "3/0 Cu steel 3ph 480 V 150 A 500 ft PF .8", m: "cu", s: "3/0", cd: "steel", ph: 3, v: 480, a: 150, ft: 500, pf: .8, sw: 2.27, ours: 2.55 },
+  { c: "4/0 Cu steel 3ph 480 V 150 A 500 ft PF .8", m: "cu", s: "4/0", cd: "steel", ph: 3, v: 480, a: 150, ft: 500, pf: .8, sw: 1.92, ours: 2.19 },
+  { c: "600 Al PVC 3ph 480 V 270 A 250 ft PF .7", m: "al", s: "600", cd: "pvc", ph: 3, v: 480, a: 270, ft: 250, pf: .7, sw: 1.02, ours: 1.29 },
+  { c: "12 Cu PVC 1ph 120 V 20 A 50 ft PF 1", m: "cu", s: "12", cd: "pvc", ph: 1, v: 120, a: 20, ft: 50, pf: 1, sw: 3.34, ours: 3.33 },
+  { c: "6 Cu PVC 1ph 240 V 50 A 150 ft PF 1", m: "cu", s: "6", cd: "pvc", ph: 1, v: 240, a: 50, ft: 150, pf: 1, sw: 3.21, ours: 3.06 },
+  { c: "2 Al PVC 1ph 240 V 90 A 200 ft PF 1", m: "al", s: "2", cd: "pvc", ph: 1, v: 240, a: 90, ft: 200, pf: 1, sw: 5.08, ours: 4.80 },
+  { c: "1/0 Cu steel 3ph 208 V 120 A 150 ft PF .85", m: "cu", s: "1/0", cd: "steel", ph: 3, v: 208, a: 120, ft: 150, pf: .85, sw: 1.91, ours: 1.96 },
+];
+type FillX = { c: string; rw: "emt" | "pvc40"; t: string; n: number; s: string; nec: number; sw: number };
+const FILL_X: FillX[] = [
+  { c: "3/4 EMT 16x #12", rw: "emt", t: "3/4", n: 16, s: "12", nec: 39.92, sw: 38.61 },
+  { c: "3/4 EMT 17x #12", rw: "emt", t: "3/4", n: 17, s: "12", nec: 42.42, sw: 41.02 },
+  { c: "1/2 EMT 9x #12", rw: "emt", t: "1/2", n: 9, s: "12", nec: 39.38, sw: 38.11 },
+  { c: "1/2 EMT 12x #14", rw: "emt", t: "1/2", n: 12, s: "14", nec: 38.29, sw: 36.85 },
+  { c: "1/2 EMT 13x #14", rw: "emt", t: "1/2", n: 13, s: "14", nec: 41.48, sw: 39.92 },
+  { c: "3/4 PVC40 20x #14", rw: "pvc40", t: "3/4", n: 20, s: "14", nec: 38.19, sw: 36.76 },
+  { c: "3/4 PVC40 21x #14", rw: "pvc40", t: "3/4", n: 21, s: "14", nec: 40.10, sw: 38.60 },
+  { c: "1 PVC40 25x #12", rw: "pvc40", t: "1", n: 25, s: "12", nec: 39.96, sw: 38.68 },
+  { c: "3/4 EMT 10x #10", rw: "emt", t: "3/4", n: 10, s: "10", nec: 39.59, sw: 38.18 },
+  { c: "1 EMT 9x #8", rw: "emt", t: "1", n: 9, s: "8", nec: 38.12, sw: 37.11 },
+];
+
+describe("manufacturer cross-check (Southwire, reported, never fails)", () => {
+  it("voltage drop: 12 cases", () => {
+    const rows = VD_X.map((x) => {
+      const ours = (vdTable9(x.m, x.s, x.a, x.ft, x.ph, x.pf, x.cd) / x.v) * 100;
+      return { case: x.c, southwire: x.sw, ours: +ours.toFixed(2), diff_pp: +(ours - x.sw).toFixed(2), recorded_ours: x.ours };
+    });
+    console.table(rows);
+    const within = rows.filter((r) => Math.abs(r.diff_pp) <= 0.1).length;
+    console.log(`voltage drop cross-check: ${within}/12 within ±0.1 pp of Southwire; largest gap ${Math.max(...rows.map((r) => Math.abs(r.diff_pp))).toFixed(2)} pp`);
+    expect(rows).toHaveLength(12); // reporting only
+  });
+  it("conduit fill: 10 cases", () => {
+    const rows = FILL_X.map((x) => {
+      const r = conduitFill(x.rw, x.t, [{ size: x.s, count: x.n }]);
+      return { case: x.c, southwire: x.sw, ours: +r.pct.toFixed(2), table5_recorded: x.nec, diff_pp: +(r.pct - x.sw).toFixed(2), ours_fits: r.fits, southwire_fits: x.sw <= 40 };
+    });
+    console.table(rows);
+    const flips = rows.filter((r) => r.ours_fits !== r.southwire_fits).map((r) => r.case);
+    console.log(`conduit fill cross-check: ours reads ${Math.min(...rows.map((r) => r.diff_pp)).toFixed(2)} to ${Math.max(...rows.map((r) => r.diff_pp)).toFixed(2)} pp above Southwire; verdict differs on: ${flips.join(", ") || "none"}`);
+    expect(rows).toHaveLength(10); // reporting only
+  });
+});
+
+describe("competitor gaps (competitor-pages-research.md)", () => {
+  it("15 A on copper never returns 16 AWG (or anything under 14 AWG), whatever the options", () => {
+    for (const insulationC of [60, 75, 90] as TempCol[]) for (const terminationC of [60, 75] as TempCol[]) for (const ambientC of [10, 30, 40]) for (const ccc of [1, 3, 6]) {
+      const r = wireSize({ material: "cu", amps: 15, insulationC, terminationC, ambientC, ccc });
+      expect(r.size, `${insulationC}/${terminationC}/${ambientC}/${ccc}`).not.toBe("16");
+      expect(r.size).not.toBeNull();
+    }
+    expect(wireSize({ material: "cu", amps: 15, insulationC: 90, terminationC: 75 }).size).toBe("14");
+    expect(wireSize({ material: "cu", amps: 16, insulationC: 90, terminationC: 75 }).size).toBe("12"); // 240.4(D): 14 AWG max 15 A
+  });
+  it("conduit fill chart: 1-1/4 in. EMT holds 11 #6 THHN (0.598 / 0.0507 = 11.79, Note 7 doesn't round up)", () => {
+    expect(maxSameSize(EMT40["1-1/4"], THHN["6"])).toBe(11);
+  });
+});

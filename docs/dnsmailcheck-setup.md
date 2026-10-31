@@ -347,7 +347,11 @@ Offer, check, capture, purchase, refund and Watch metrics also live in `stats.ts
 
 ## What the port did (build steps 2–6, 31 Oct 2026)
 
-### Cloudflare resources (account clutcharchive2006, nothing of dnsmailcheck's touched)
+### Cloudflare resources
+
+**Current (since 31 Oct 2026, follow-up build):** Stackbriefco@gmail.com's Account (`1552e47f096ee67d67374d48d09873a8`, login stackbriefco@gmail.com), which holds the wirecalculators.com zone: Worker `wirecalc-site` on Workers Custom Domains wirecalculators.com and www.wirecalculators.com (no workers.dev), D1 `wirecalc-db` (`bd55cd2b-7b5c-4e4c-9391-063d81a3a644`), KV `wirecalc-kv` (`eecafc8a7f35443cb35bd0689fcf6e67`), fresh `ADMIN_SECRET` and `ADS_INGEST_SECRET`. The cron isn't scheduled yet (the account needs a workers.dev subdomain: docs/setup-steps.md step 1).
+
+**First preview (left in place, untouched), dnsmailcheck's account clutcharchive2006:**
 
 | Resource | Name / id | dnsmailcheck's equivalent |
 |---|---|---|
@@ -360,7 +364,7 @@ Offer, check, capture, purchase, refund and Watch metrics also live in `stats.ts
 
 Checked after the tracking test: dnsmailcheck's `email-checker` D1 has 0 rows from this work.
 
-Differences from dnsmailcheck's wrangler.toml, and why: `workers_dev`/`preview_urls` on (no Durable Object; domain not connected yet); custom-domain `routes` commented out until wirecalculators.com is in this account (docs/setup-steps.md step 2); no `[limits]`, no Durable Object, no queue, no `[vars]` (no DNS checks, no rate limits, no accounts).
+Differences from dnsmailcheck's wrangler.toml, and why: `account_id` pinned (the login sees two accounts); `preview_urls` on (no Durable Object to block them); no `[limits]`, no Durable Object, no queue, no `[vars]` (no DNS checks, no rate limits, no accounts). Same as dnsmailcheck: `workers_dev = false`, apex + www as Workers Custom Domains, www → apex 301 in the Worker.
 
 ### D1 schema
 
@@ -390,3 +394,9 @@ Consent: identical to dnsmailcheck: no banner, and the first-party tracker and `
 2. Redrawing a calculator's result on the `change` event that follows typing replaced the Copy button under the tap; results now redraw only when they change.
 3. `navigator.clipboard.writeText` can hang (headless Chrome): copy_result is sent before the clipboard call.
 4. wrangler's OAuth token can't be refreshed from a non-interactive session; it has to be passed as `CLOUDFLARE_API_TOKEN` and dies at its expiry.
+
+### Follow-up build (31 Oct 2026): privacy, cross-check, result display
+
+- **Privacy, Tier 1** (docs/research/privacy-consent-research.md): confirmed the tracker stores no IP in any form (no column for one; the unused `clientIp` helper ported from dnsmailcheck was deleted), no user agent, no typed text (the generator's load names never leave the page), no session replay, and sends nothing to any third party. Retention cut from dnsmailcheck's 25 months to 13. `config.features.thirdPartyTags` (off) and `src/client/consent.ts` (Consent Mode v2 default denied, never granted under GPC) are ready for Tier 2; a footer line confirms GPC when the browser sends it. `scripts/privacy-check.ts` (Playwright) asserts no request leaves wirecalculators.com except Cloudflare's beacon, with no consent and with GPC on. Privacy policy rewritten from research §3, still DRAFT.
+- **Manufacturer cross-check:** the 22 Southwire cases in `tests/unit/calc.test.ts`, reported, never failing.
+- **Results:** every result echoes the inputs, shows the formula with those numbers and cites the code tables; wire size names the limit that decided the size and says 240.4(D) and 110.14(C) were applied; voltage drop has a 120/240 V 3-wire balanced preset; conduit fill shows the Note 7 max count beside the fill; the ampacity chart carries 240.4(D) and 110.14(C) notes in our own words. `scripts/browser-check.ts` checks every calculator has no Calculate button and updates within 500 ms of typing.

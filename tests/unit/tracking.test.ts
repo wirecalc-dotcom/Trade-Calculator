@@ -145,3 +145,58 @@ describe("site", () => {
     for (const p of pages) expect(p.body, p.path).not.toMatch(/dnsmailcheck|DNS Mail Check|Watch my domain|Stripe|Sign in|checkout|DMARC/i);
   });
 });
+
+describe("privacy, Tier 1 (privacy-consent-research.md §0.1)", () => {
+  it("stores no IP address in any form, and no user agent", async () => {
+    const env = envOf();
+    const ip = "203.0.113.77";
+    await postEvent(new Request("https://wirecalculators.com/api/event", { method: "POST", body: JSON.stringify({ type: "page_view", page: "/" }),
+      headers: { "content-type": "application/json", "user-agent": UA, "cf-connecting-ip": ip, "x-forwarded-for": ip, "x-real-ip": ip } }), env);
+    const all = JSON.stringify(rows(env));
+    expect(all).not.toContain("203.0.113");
+    expect(all).not.toContain("Safari");
+    const cols = (env.DB.raw.prepare("PRAGMA table_info(events)").all() as { name: string }[]).map((c) => c.name)
+      .concat((env.DB.raw.prepare("PRAGMA table_info(ad_hits)").all() as { name: string }[]).map((c) => c.name));
+    expect(cols.filter((c) => /(^|_)ip($|_)|user_agent|^ua$/.test(c))).toEqual([]);
+  });
+  it("never puts typed text in calc_run: the generator's load names stay in the browser", () => {
+    const g = CALCS["generator-size"];
+    const o = g.run({ ...defaults(g), name1: "Jane's garage freezer", name2: "555-0100" });
+    expect(`${o.inputs} ${o.result}`).not.toMatch(/Jane|freezer|555/);
+  });
+  it("the Tier 2 flag is off: no third-party tags", () => {
+    expect(config.features.thirdPartyTags).toBe(false);
+  });
+});
+
+describe("results show the inputs, the formula with the numbers, and the code reference", () => {
+  it("every calculator's default result has all three", () => {
+    for (const c of Object.values(CALCS)) {
+      const o = c.run(defaults(c));
+      expect(o.echo, c.id).toBeTruthy();
+      expect(o.math?.length, c.id).toBeGreaterThan(0);
+      expect(o.math!.some((m) => /\d/.test(m) && /=/.test(m)), c.id).toBe(true);
+      expect(o.cite, c.id).toBeTruthy();
+    }
+  });
+  it("wire size says which limit decided the size and that 240.4(D) and 110.14(C) were applied", () => {
+    const w = CALCS["wire-size"];
+    const o = w.run({ ...defaults(w), amps: "20", term: "75" });
+    const rows2 = Object.fromEntries(o.rows);
+    expect(o.headline).toBe("12 AWG copper");
+    expect(rows2["What decided the size"]).toMatch(/^240\.4\(D\): 14 AWG/);
+    expect(rows2["Checks applied"]).toMatch(/240\.4\(D\).*110\.14\(C\)/);
+    expect(o.math!.join(" ")).toMatch(/90 °C column/);
+  });
+  it("voltage drop's 120/240 V 3-wire preset uses 240 V line to line", () => {
+    const vd = CALCS["voltage-drop"];
+    const o = vd.run({ ...defaults(vd), system: "split", amps: "20", feet: "100", size: "12" });
+    expect(o.headline).toBe("6.91 V drop (2.88%)");
+    expect(Object.fromEntries(o.rows)["Each 120 V leg"]).toMatch(/^3\.46 V/);
+  });
+  it("conduit fill shows the Note 7 max count beside the fill", () => {
+    const cf = CALCS["conduit-fill"];
+    const o = cf.run({ ...defaults(cf), raceway: "pvc40", trade: "3/4", size1: "14", count1: "10" });
+    expect(o.sub).toMatch(/Most that fit: 21 × 14 AWG \(Note 7 applied\)/);
+  });
+});

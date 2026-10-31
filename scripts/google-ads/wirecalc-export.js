@@ -17,7 +17,7 @@
  * drops it, runs the query again, and says which in the log.
  */
 
-var INGEST_URL = "https://wirecalculators.com/api/ads-ingest"; // until the domain is connected: https://wirecalc-site.clutcharchive2006.workers.dev/api/ads-ingest
+var INGEST_URL = "https://wirecalculators.com/api/ads-ingest";
 var ADS_INGEST_SECRET = "PASTE-THE-SECRET-HERE";
 var DRY_RUN = true; // true: log what would be sent, send nothing. false: send it.
 

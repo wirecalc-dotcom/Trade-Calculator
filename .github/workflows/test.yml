@@ -16,6 +16,6 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx vitest run tests/unit/calc.test.ts --reporter=verbose
-      - run: npx vitest run tests/unit/tracking.test.ts
+      - run: npx vitest run tests/unit/tracking.test.ts   # tracking, privacy (no IP, no typed text), result display
       - run: npm run typecheck
       - run: npm run build

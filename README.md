@@ -2,7 +2,7 @@
 
 Free electrical calculators for working electricians: voltage drop, conduit fill, Ohm's law, wire size, generator size, amps ↔ watts, and an ampacity chart. Built as a clone of dnsmailcheck's stack (one Cloudflare Worker with static assets, same analytics and click tracking, same UI system), rebranded, with every dnsmailcheck product feature removed. How dnsmailcheck is built and what was ported: [docs/dnsmailcheck-setup.md](docs/dnsmailcheck-setup.md). Steps only Colin can do: [docs/setup-steps.md](docs/setup-steps.md).
 
-Live preview: https://wirecalc-site.clutcharchive2006.workers.dev (noindex until the NFPA 70 check; `config.indexable`).
+Live: https://wirecalculators.com, on Stackbriefco@gmail.com's Cloudflare account (noindex until the NFPA 70 check; `config.indexable`).
 
 ## Run locally
 
@@ -21,6 +21,7 @@ npm test                      # math (tests/unit/calc.test.ts) and tracking/site
 npm run typecheck
 npx tsx scripts/browser-check.ts <base-url> [--shots=dir]   # Playwright, every page at 390 and 1280 px
 npx tsx scripts/track-check.ts <base-url>                   # fires every tracking event; prints the D1 query to check them
+npx tsx scripts/privacy-check.ts <base-url>                 # Playwright: no third-party requests, with no consent and with GPC on
 npx --yes wrangler deploy                                   # builds, then deploys the Worker
 ```
 

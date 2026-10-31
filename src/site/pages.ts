@@ -178,6 +178,9 @@ ${intro ? `<p class="small">${intro}</p>` : ""}
 </table></div>${foot ? `\n<p class="small muted">${foot}</p>` : ""}
 </section>`;
 
+/** Our own wording of the two rules every ampacity chart needs beside it. */
+const NOTE_240_4D = "† Small conductors (240.4(D)): the wire can carry this much, but its breaker or fuse can't be larger than 15 A on 14 AWG copper, 20 A on 12 AWG copper or 30 A on 10 AWG copper; on aluminum, 15 A on 12 AWG and 25 A on 10 AWG.";
+const NOTE_110_14C = "Terminals (110.14(C)): use the column of the lowest-rated part of the circuit. Equipment for circuits of 100 A or less, or for 14 through 1 AWG, is treated as 60 °C unless it's marked 75 °C; over 100 A, 75 °C. The 90 °C column is a starting point for derating 90 °C wire, not the final ampacity at a 60 °C or 75 °C terminal.";
 const ocpdMark = (mat: "cu" | "al", s: string, amps: number) => {
   const lim = OCPD_LIMIT_240_4D[`${mat}:${s}`];
   return lim !== undefined && lim < amps ? `${amps}<sup>†</sup>` : `${amps}`;
@@ -186,12 +189,12 @@ function ampacityCharts(): string[] {
   const cu = chart("ampacity-copper", "Copper ampacity", "Allowable amps for copper building wire at 30 °C (86 °F) ambient with up to three current-carrying conductors, by insulation temperature rating. From NEC Table 310.16.",
     ["Size", "60 °C<br><small>TW, UF</small>", "75 °C<br><small>THW, THWN, XHHW</small>", "90 °C<br><small>THHN, THWN-2, XHHW-2</small>", "Most overcurrent protection"],
     SIZES.map((s) => [sizeLabel(s), ...AMP_CU[s].map((a) => ocpdMark("cu", s, a)), OCPD_LIMIT_240_4D[`cu:${s}`] ? `${OCPD_LIMIT_240_4D[`cu:${s}`]} A (240.4(D))` : "Per 240.4"]),
-    "† Higher than 240.4(D) allows for the overcurrent device on that size. Most terminals are rated 60 °C or 75 °C (110.14(C)), so the 90 °C column is for derating only.");
+    NOTE_240_4D + " " + NOTE_110_14C);
   const alSizes = SIZES.filter((s) => s in AMP_AL);
   const al = chart("ampacity-aluminum", "Aluminum ampacity", "The same for aluminum and copper-clad aluminum conductors. From NEC Table 310.16.",
     ["Size", "60 °C", "75 °C", "90 °C", "Most overcurrent protection"],
     alSizes.map((s) => [sizeLabel(s), ...AMP_AL[s].map((a) => ocpdMark("al", s, a)), OCPD_LIMIT_240_4D[`al:${s}`] ? `${OCPD_LIMIT_240_4D[`al:${s}`]} A (240.4(D))` : "Per 240.4"]),
-    "† Higher than 240.4(D) allows for the overcurrent device on that size.");
+    NOTE_240_4D + " " + NOTE_110_14C);
   const amb = chart("ambient-correction", "Ambient temperature correction", "Multiply the 30 °C ampacity by this factor. From NEC Table 310.15(B)(1)(1); each value is the 310.15(B) equation at the top of its range.",
     ["Ambient", "60 °C wire", "75 °C wire", "90 °C wire"],
     AMBIENT_310_15B1.map(([max, ...f], i) => {

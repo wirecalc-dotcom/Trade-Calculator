@@ -21,6 +21,8 @@ summary: Where each value comes from, by table and section number. {.open}
 - **210.19 and 215.2, Informational Notes:** 3% for a branch circuit and 5% for feeder plus branch are recommendations, not rules (90.5(C)).
 - **647.4(D) and 695.7:** sensitive electronic equipment and fire pumps, where voltage drop limits are enforceable.
 
+Wire makers' calculators can show slightly different numbers: they adjust the wire's resistance for its temperature under load, while this calculator uses the Table 9 values at 75 °C, the method the code publishes.
+
 {{example}}
 
 ## Code editions
