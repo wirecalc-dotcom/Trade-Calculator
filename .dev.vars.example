@@ -1,0 +1,13 @@
+# Copy to .dev.vars for local development. Never commit .dev.vars.
+# Production values are Cloudflare Worker secrets (npx wrangler secret put NAME).
+
+# Password for /admin/stats, /admin/clicks and /admin/internal (HTTP Basic auth, any username). Empty = admin disabled.
+ADMIN_SECRET=replace-with-a-long-random-string
+
+# Bearer secret the Google Ads Script sends to POST /api/ads-ingest (scripts/google-ads/wirecalc-export.js).
+ADS_INGEST_SECRET=replace-with-a-long-random-string
+
+# Placeholders, not read by any code yet (dnsmailcheck has no GA4, Ads tag or Clarity; see docs/setup-steps.md).
+# GA4_MEASUREMENT_ID=G-XXXXXXXXXX
+# GOOGLE_ADS_ID=AW-XXXXXXXXXX
+# CLARITY_PROJECT_ID=xxxxxxxxxx

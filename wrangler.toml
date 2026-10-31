@@ -1,0 +1,59 @@
+# The whole site is one Cloudflare Worker with static assets, the same setup as dnsmailcheck (docs/dnsmailcheck-setup.md).
+# Account: clutcharchive2006@gmail.com (dnsmailcheck's). D1 wirecalc-db and KV wirecalc-kv created 2026-10-31; nothing here
+# touches dnsmailcheck's email-checker resources.
+# Local: npm run db:migrate:local && npm run dev    Deploy: npx --yes wrangler deploy
+name = "wirecalc-site"
+main = "src/worker.ts"
+compatibility_date = "2026-10-01" # dnsmailcheck's date
+# dnsmailcheck: workers_dev = false and preview_urls = false (its Durable Object blocks preview URLs; it serves only on its
+# custom domain). This site has no Durable Object, and wirecalculators.com isn't on this account yet (docs/setup-steps.md),
+# so the workers.dev URL and version preview URLs stay on until the custom domain below is connected.
+workers_dev = true
+preview_urls = true
+
+# wirecalculators.com, connected the way dnsmailcheck.com is (Workers Custom Domains for the apex and www; the Worker answers
+# www with a 301 to the apex). Needs the wirecalculators.com zone on this account first: uncomment, then deploy.
+# routes = [
+#   { pattern = "wirecalculators.com", custom_domain = true },
+#   { pattern = "www.wirecalculators.com", custom_domain = true },
+# ]
+
+# Local dev presents requests as https (as dnsmailcheck does), so the Worker's http -> https redirect never fires locally.
+[dev]
+upstream_protocol = "https"
+
+# `wrangler dev` and `wrangler deploy` run this first: it writes the static site to public/.
+[build]
+command = "npm run build"
+watch_dir = ["src", "site", "content"]
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+not_found_handling = "404-page"       # serves public/404.html with a 404 status
+html_handling = "auto-trailing-slash" # /voltage-drop-calculator serves voltage-drop-calculator.html
+run_worker_first = true # every request: www -> apex and http -> https redirects, then pages via env.ASSETS
+
+# Workers Logs, as dnsmailcheck: our own console output only. Per-request invocation logs stay off: they'd keep request URLs
+# and request metadata such as the visitor's IP, which /privacy says we never keep.
+[observability]
+enabled = true
+head_sampling_rate = 1
+
+[observability.logs]
+invocation_logs = false
+
+# Daily at 07:00 UTC: the retention purge (src/lib/retention.ts), dnsmailcheck's 07:00 slot.
+[triggers]
+crons = ["0 7 * * *"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "wirecalc-db"
+database_id = "87aa0b73-caf4-4f31-8e75-941ef31f2cf3"
+migrations_dir = "migrations"
+
+# Bound like dnsmailcheck's KV. No ported feature writes to it yet (dnsmailcheck used KV for its DNS result cache).
+[[kv_namespaces]]
+binding = "KV"
+id = "34a0c5cc05284e458b7ed3d10423cdb5" # title "wirecalc-kv"

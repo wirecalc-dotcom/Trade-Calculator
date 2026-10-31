@@ -1,0 +1,28 @@
+{
+  "name": "wirecalculators",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Wire Calculators (wirecalculators.com): free electrical calculators for working electricians. One Cloudflare Worker with static assets.",
+  "scripts": {
+    "build": "tsx scripts/build.ts",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.client.json",
+    "test": "vitest run tests/unit",
+    "test:math": "vitest run tests/unit/calc.test.ts",
+    "db:migrate:local": "npx --yes wrangler d1 migrations apply wirecalc-db --local",
+    "db:migrate:remote": "npx --yes wrangler d1 migrations apply wirecalc-db --remote",
+    "dev": "npx --yes wrangler dev",
+    "deploy": "npx --yes wrangler deploy",
+    "browser-check": "tsx scripts/browser-check.ts",
+    "track-check": "tsx scripts/track-check.ts"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261019.1",
+    "@types/node": "^24.19.2",
+    "esbuild": "^0.28.2",
+    "playwright": "^1.64.1",
+    "tsx": "^4.23.0",
+    "typescript": "~5.9.3",
+    "vitest": "^5.0.5"
+  }
+}
