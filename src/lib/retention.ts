@@ -1,10 +1,11 @@
 // Data retention, from dnsmailcheck's src/lib/retention.ts (Colin's 21 Oct 2026 decisions), trimmed to the tables this site has:
-//  - visit and page events: 25 months; ad_hits and our own Google Ads reports: 25 months, like the events they reconcile with.
+//  - visit and page events: 13 months (dnsmailcheck: 25); ad_hits and our own Google Ads reports: the same, like the events they reconcile with.
 // Run once a day by the Worker's scheduled() handler (wrangler.toml [triggers]). dnsmailcheck ran it inside the daily Watch
 // cron, which asset mode turned off; here it is the cron's only job, so the /privacy promise holds.
 // Deletes run in batches (BATCH rows a statement, at most MAX_BATCHES a table a run); anything left over goes on the next run.
 
-export const RETENTION = { eventMonths: 25 } as const;
+// 13 months: docs/research/privacy-consent-research.md §3.7 (dnsmailcheck keeps 25). /privacy says the same.
+export const RETENTION = { eventMonths: 13 } as const;
 
 const BATCH = 500;
 

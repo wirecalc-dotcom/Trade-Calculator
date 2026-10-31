@@ -8,6 +8,7 @@ import { halfOnScreen, SEEN_THRESHOLDS, seenTimer } from "../lib/offerseen";
 import { engagedClock, exitTracker, linkKind, newMarks, scrollPercent } from "../lib/engagement";
 import { drain, enqueue, parseQueue } from "../lib/beaconq";
 import { CALCS, resultHtml, type Out, type Values } from "../site/calculators";
+import { gpcOn, initConsent } from "./consent";
 
 // ---------- attribution, visits, events ----------
 
@@ -379,6 +380,10 @@ function init() {
   }, true);
 
   initCalcBlocks();
+  // Tier 2 is off (config.features.thirdPartyTags); with GPC on, say that it's honored (California, from Jan 2026).
+  const cfg = (() => { try { return JSON.parse(document.getElementById("client-config")?.textContent ?? "{}"); } catch { return {}; } })() as { thirdPartyTags?: boolean };
+  initConsent(cfg.thirdPartyTags === true);
+  if (gpcOn()) document.querySelectorAll<HTMLElement>("[data-gpc-note]").forEach((el) => { el.hidden = false; });
   document.querySelectorAll<HTMLButtonElement>("[data-theme-toggle]").forEach(bindThemeToggle);
 
   // The header's menu (a native <details>) closes on Escape, back to its button, and on a click outside it.

@@ -33,7 +33,7 @@ export const FOOTER_SITE = [["/", "All calculators"], ["/privacy", "Privacy"], [
 export const PAGE_LABELS: Record<string, string> = Object.fromEntries([...FOOTER_CALCS, ...FOOTER_CHARTS, ...FOOTER_SITE]);
 
 /** Values the browser script needs. Read from a JSON script tag (never executed). */
-export const clientConfig = () => ({ brand: config.brandName });
+export const clientConfig = () => ({ brand: config.brandName, thirdPartyTags: config.features.thirdPartyTags });
 
 // The system preference picks light or dark until the visitor chooses here (stored by the browser script, applied
 // before paint by the inline THEME_INLINE script, same logic as /assets/theme.js). Without JavaScript the button stays hidden.
@@ -121,6 +121,7 @@ ${o.body}
       <div><h2>${e(config.brandName)}</h2><ul>${links(FOOTER_SITE)}</ul></div>
     </div>
     ${trustStrip("footer-trust")}
+    <p class="gpc-note" data-gpc-note hidden>Your browser's Global Privacy Control signal is on, so we don't load advertising or third-party analytics.</p>
     <p class="fineprint">Not affiliated with NFPA. NEC® is a registered trademark of the National Fire Protection Association; tables are cited by number, and values are used inside the calculators. ${e(config.ahjLine)}</p>
     ${FOOTER_BASE}
   </div>

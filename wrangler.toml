@@ -1,22 +1,23 @@
 # The whole site is one Cloudflare Worker with static assets, the same setup as dnsmailcheck (docs/dnsmailcheck-setup.md).
-# Account: clutcharchive2006@gmail.com (dnsmailcheck's). D1 wirecalc-db and KV wirecalc-kv created 2026-10-31; nothing here
-# touches dnsmailcheck's email-checker resources.
+# Account: Stackbriefco@gmail.com's Account (login stackbriefco@gmail.com), which holds the wirecalculators.com zone.
+# D1 wirecalc-db and KV wirecalc-kv created there 2026-10-31. (The first preview ran on dnsmailcheck's clutcharchive2006
+# account; that Worker and D1 are left in place, untouched: docs/setup-steps.md.)
 # Local: npm run db:migrate:local && npm run dev    Deploy: npx --yes wrangler deploy
 name = "wirecalc-site"
+account_id = "1552e47f096ee67d67374d48d09873a8" # Stackbriefco@gmail.com's Account
 main = "src/worker.ts"
 compatibility_date = "2026-10-01" # dnsmailcheck's date
-# dnsmailcheck: workers_dev = false and preview_urls = false (its Durable Object blocks preview URLs; it serves only on its
-# custom domain). This site has no Durable Object, and wirecalculators.com isn't on this account yet (docs/setup-steps.md),
-# so the workers.dev URL and version preview URLs stay on until the custom domain below is connected.
-workers_dev = true
+# As dnsmailcheck: served only on the custom domain, no workers.dev subdomain. Version preview URLs stay on (dnsmailcheck
+# turned them off only because its Durable Object blocks them; this site has none).
+workers_dev = false
 preview_urls = true
 
-# wirecalculators.com, connected the way dnsmailcheck.com is (Workers Custom Domains for the apex and www; the Worker answers
-# www with a 301 to the apex). Needs the wirecalculators.com zone on this account first: uncomment, then deploy.
-# routes = [
-#   { pattern = "wirecalculators.com", custom_domain = true },
-#   { pattern = "www.wirecalculators.com", custom_domain = true },
-# ]
+# wirecalculators.com, connected the way dnsmailcheck.com is: Workers Custom Domains for the apex and www (Cloudflare creates
+# the DNS records and certificates); the Worker answers www with a 301 to the apex (src/worker.ts canonicalRedirect).
+routes = [
+  { pattern = "wirecalculators.com", custom_domain = true },
+  { pattern = "www.wirecalculators.com", custom_domain = true },
+]
 
 # Local dev presents requests as https (as dnsmailcheck does), so the Worker's http -> https redirect never fires locally.
 [dev]
@@ -50,10 +51,10 @@ crons = ["0 7 * * *"]
 [[d1_databases]]
 binding = "DB"
 database_name = "wirecalc-db"
-database_id = "87aa0b73-caf4-4f31-8e75-941ef31f2cf3"
+database_id = "bd55cd2b-7b5c-4e4c-9391-063d81a3a644"
 migrations_dir = "migrations"
 
 # Bound like dnsmailcheck's KV. No ported feature writes to it yet (dnsmailcheck used KV for its DNS result cache).
 [[kv_namespaces]]
 binding = "KV"
-id = "34a0c5cc05284e458b7ed3d10423cdb5" # title "wirecalc-kv"
+id = "eecafc8a7f35443cb35bd0689fcf6e67" # title "wirecalc-kv"

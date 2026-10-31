@@ -19,5 +19,10 @@ export const config = {
   features: {
     // Display ads (AdSense): off. The privacy page's advertising section follows it.
     adsEnabled: false,
+    // Tier 2 (docs/research/privacy-consent-research.md §0.1): third-party tags (GA4, Google Ads tag, Clarity). Off: nothing
+    // third-party loads and there is no consent banner. Turning it on needs the banner first; src/client/consent.ts has the
+    // Consent Mode stub (default denied, never granted while Global Privacy Control is on). Tier 1, our own first-party
+    // tracker, runs either way: it sends nothing to anyone else.
+    thirdPartyTags: false,
   },
 } as const;

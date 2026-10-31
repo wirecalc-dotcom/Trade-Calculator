@@ -972,3 +972,8 @@ main > .watch-strip > * { max-width: none; }
 .admin-stats .table-wrap { max-width: 100%; }
 .stats-range { display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-3); align-items: center; }
 .stats-range input[type="date"] { width: auto; }
+.calc-label { display: block; font-size: var(--fs-12); line-height: var(--lh-sm); font-weight: var(--fw-semibold); letter-spacing: 0.02em; text-transform: uppercase; color: var(--c-text-2); margin-bottom: var(--sp-1); }
+.calc-echo, .calc-cite { margin: 0; font-size: var(--fs-sm); line-height: var(--lh-sm); color: var(--c-text-1); overflow-wrap: anywhere; }
+.calc-math { padding: var(--sp-3); border-radius: var(--r-2); background: var(--c-surface-1); }
+.calc-math ul { margin: 0; padding: 0; list-style: none; display: grid; gap: var(--sp-1); font-family: var(--font-mono); font-size: var(--fs-13); line-height: var(--lh-sm); color: var(--c-heading); overflow-wrap: anywhere; }
+.gpc-note { font-size: var(--fs-sm); color: var(--c-text-2); }

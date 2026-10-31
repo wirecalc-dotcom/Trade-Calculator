@@ -18,10 +18,6 @@ export function escapeHtml(s: unknown): string {
   return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 }
 
-export function clientIp(req: Request): string {
-  return req.headers.get("cf-connecting-ip") ?? req.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "0.0.0.0";
-}
-
 /** Constant-time string comparison. */
 export function safeEqual(a: string, b: string): boolean {
   const ea = new TextEncoder().encode(a);
